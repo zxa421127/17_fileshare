@@ -1,15 +1,9 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-
 from app.database.database import get_db
-from app.database.models import (
-    FilePermission,
-    FileObject,
-    User
-)
-
-from app.schemas.permissions import PermissionCreate
+from app.database.models import FilePermission, FileObject, User
+from app.api.auth import get_current_user
 
 
 router = APIRouter(
@@ -18,44 +12,32 @@ router = APIRouter(
 )
 
 
-
 @router.post("/{file_id}/permissions")
 def add_permission(
     file_id:int,
-    data:PermissionCreate,
-    db:Session=Depends(get_db)
+    user_id:int,
+    permission:str="read",
+    db:Session=Depends(get_db),
+    current_user:User=Depends(get_current_user)
 ):
 
     file=db.query(FileObject).filter(
-        FileObject.id==file_id
+        FileObject.id==file_id,
+        FileObject.owner_id==current_user.id
     ).first()
-
 
     if not file:
         raise HTTPException(
-            404,
-            "file not found"
-        )
-
-
-    user=db.query(User).filter(
-        User.id==data.user_id
-    ).first()
-
-
-    if not user:
-        raise HTTPException(
-            404,
-            "user not found"
+            status_code=403,
+            detail="Only owner can share"
         )
 
 
     item=FilePermission(
         file_id=file_id,
-        user_id=data.user_id,
-        permission=data.permission
+        user_id=user_id,
+        permission=permission
     )
-
 
     db.add(item)
     db.commit()
@@ -66,20 +48,42 @@ def add_permission(
     }
 
 
-
-
 @router.get("/{file_id}/permissions")
 def list_permissions(
     file_id:int,
-    db:Session=Depends(get_db)
+    db:Session=Depends(get_db),
+    current_user:User=Depends(get_current_user)
 ):
 
-    rows=db.query(
+    return db.query(
         FilePermission
     ).filter(
         FilePermission.file_id==file_id
     ).all()
 
 
-    return rows
 
+@router.delete("/{file_id}/permissions/{user_id}")
+def delete_permission(
+    file_id:int,
+    user_id:int,
+    db:Session=Depends(get_db),
+    current_user:User=Depends(get_current_user)
+):
+
+    item=db.query(
+        FilePermission
+    ).filter(
+        FilePermission.file_id==file_id,
+        FilePermission.user_id==user_id
+    ).first()
+
+
+    if item:
+        db.delete(item)
+        db.commit()
+
+
+    return {
+        "message":"deleted"
+    }
