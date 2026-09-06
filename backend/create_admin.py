@@ -1,12 +1,11 @@
 import argparse
 
 from app.auth.password import hash_password
-from app.database.database import Base, SessionLocal, engine
+from app.database.database import SessionLocal
 from app.database.models import User, UserSecurity
 
 
 def upsert_admin(username: str, password: str, email: str | None = None):
-    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.username == username).first()
@@ -32,7 +31,7 @@ def upsert_admin(username: str, password: str, email: str | None = None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create or update a local administrator account")
+    parser = argparse.ArgumentParser(description="Create or update an administrator account")
     parser.add_argument("--username", required=True)
     parser.add_argument("--password", required=True)
     parser.add_argument("--email")
