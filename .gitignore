@@ -7,6 +7,12 @@ __pycache__/
 .venv/
 venv/
 
+# 测试/覆盖率缓存
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
 # PyCharm配置
 .idea/
 
