@@ -9,3 +9,6 @@ python-multipart
 pytest
 pytest-cov
 httpx
+alembic
+psycopg[binary]
+minio
