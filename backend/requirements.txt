@@ -1,4 +1,10 @@
 fastapi
 uvicorn
-python-jose
+python-jose[cryptography]
 passlib[bcrypt]
+sqlalchemy
+pydantic-settings
+python-multipart
+pytest
+pytest-cov
+httpx
