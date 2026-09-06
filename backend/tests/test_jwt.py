@@ -1,3 +1,5 @@
+import pytest
+
 from app.auth.jwt import create_token, decode_token
 
 
@@ -11,8 +13,11 @@ def test_create_and_decode_token():
 
 
 def test_invalid_token_rejected():
-    try:
+    with pytest.raises(ValueError):
         decode_token("not-a-valid-token")
-        assert False, "decode_token should reject invalid tokens"
-    except ValueError:
-        assert True
+
+
+def test_expired_token_rejected():
+    token = create_token(123, expires_minutes=-1)
+    with pytest.raises(ValueError):
+        decode_token(token)
